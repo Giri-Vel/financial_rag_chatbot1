@@ -1,0 +1,108 @@
+[project]
+name = "regulator-ai"
+version = "0.1.0"
+description = "AI-powered assistant for navigating RBI & SEBI regulatory documents"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Giri" }]
+keywords = ["rag", "llm", "fintech", "rbi", "sebi", "compliance", "ai"]
+
+dependencies = [
+    # LLM & RAG Framework
+    "langchain>=0.3.25",
+    "langchain-openai>=0.3.18",
+    "langchain-community>=0.3.24",
+    "langchain-chroma>=0.2.4",
+    "openai>=1.78.1",
+
+    # Vector Store
+    "chromadb>=1.0.7",
+
+    # Document Processing
+    "PyMuPDF>=1.25.5",
+    "unstructured[pdf]>=0.17.2",
+
+    # Text Processing
+    "tiktoken>=0.9.0",
+    "beautifulsoup4>=4.13.4",
+    "lxml>=5.4.0",
+
+    # Web Scraping
+    "requests>=2.32.3",
+    "httpx>=0.28.1",
+
+    # API Backend
+    "fastapi>=0.115.12",
+    "uvicorn[standard]>=0.34.2",
+    "pydantic>=2.11.2",
+    "pydantic-settings>=2.9.1",
+
+    # Frontend
+    "streamlit>=1.45.1",
+
+    # AWS
+    "boto3>=1.38.24",
+
+    # Utilities
+    "python-dotenv>=1.1.0",
+    "loguru>=0.7.3",
+    "tqdm>=4.67.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-asyncio>=1.0.0",
+    "ipykernel>=6.29.5",
+    "black>=25.1.0",
+    "ruff>=0.11.12",
+]
+
+[project.urls]
+Repository = "https://github.com/YOUR_USERNAME/regulator-ai"
+
+# ── Build System ──────────────────────────────────────
+
+[build-system]
+requires = ["setuptools>=75.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+# ── Black (Code Formatter) ────────────────────────────
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+# ── Ruff (Linter) ────────────────────────────────────
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort (import sorting)
+    "UP",   # pyupgrade
+    "B",    # bugbear
+    "SIM",  # simplify
+]
+ignore = [
+    "E501",  # line too long (black handles this)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+# ── Pytest ────────────────────────────────────────────
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-v --tb=short"

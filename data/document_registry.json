@@ -1,0 +1,120 @@
+{
+  "documents": [
+    {
+      "id": "rbi-digital-lending-2022",
+      "title": "Guidelines on Digital Lending",
+      "regulator": "RBI",
+      "topic": "digital_lending",
+      "doc_type": "guideline",
+      "date": "2022-09-02",
+      "url": "https://fidcindia.org.in/wp-content/uploads/2022/09/RBI-GUIDELINES-ON-DIGITAL-LENDING-02-09-22.pdf",
+      "source_note": "Mirror from FIDC India - original on rbidocs blocked by bot protection",
+      "description": "Comprehensive guidelines on digital lending covering LSPs, DLAs, and borrower protection"
+    },
+    {
+      "id": "rbi-digital-lending-faq",
+      "title": "FAQs on Guidelines on Digital Lending",
+      "regulator": "RBI",
+      "topic": "digital_lending",
+      "doc_type": "faq",
+      "date": "2022-12-14",
+      "url": "https://www.rbi.org.in/commonman/english/scripts/FAQs.aspx?Id=3413",
+      "format": "html",
+      "description": "Clarifications on digital lending guidelines - HTML page"
+    },
+    {
+      "id": "rbi-digital-lending-directions-2025",
+      "title": "Reserve Bank of India (Digital Lending) Directions, 2025",
+      "regulator": "RBI",
+      "topic": "digital_lending",
+      "doc_type": "master_direction",
+      "date": "2025-05-08",
+      "url": "https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=12848&Mode=0",
+      "format": "html",
+      "source_note": "RBI notification page - full text available as HTML",
+      "description": "Updated comprehensive digital lending directions with DLG arrangements and CIMS portal requirements"
+    },
+    {
+      "id": "rbi-kyc-master-direction-2016",
+      "title": "Master Direction - Know Your Customer (KYC) Direction, 2016",
+      "regulator": "RBI",
+      "topic": "kyc_aml",
+      "doc_type": "master_direction",
+      "date": "2016-02-25",
+      "url": "https://www.rbi.org.in/commonman/Upload/English/Notification/PDFs/MD18KYCF6E92C82E1E1419D87323E3869BC9F13.pdf",
+      "source_note": "From RBI commonman portal - not behind bot protection",
+      "description": "Master direction on KYC norms for banks and financial institutions, updated through 2025"
+    },
+    {
+      "id": "rbi-kyc-faq-2025",
+      "title": "FAQs on Master Direction on KYC",
+      "regulator": "RBI",
+      "topic": "kyc_aml",
+      "doc_type": "faq",
+      "date": "2025-06-09",
+      "url": "https://www.rbi.org.in/commonman/Upload/English/FAQs/PDFs/KYC09062025.pdf",
+      "source_note": "From RBI commonman portal",
+      "description": "Comprehensive FAQ on KYC master direction covering Aadhaar, V-CIP, CKYCR, and periodic updation"
+    },
+    {
+      "id": "rbi-vcip-circular-2020",
+      "title": "Amendment to Master Direction on KYC - V-CIP Introduction",
+      "regulator": "RBI",
+      "topic": "kyc_aml",
+      "doc_type": "circular",
+      "date": "2020-01-09",
+      "url": "https://img1.digitallocker.gov.in/circulars/RBI_master_circular_on_eKYC_09.01.2020.PDF",
+      "source_note": "Mirror from DigiLocker - original on rbidocs blocked",
+      "description": "Amendment introducing Video-based Customer Identification Process (V-CIP) for digital KYC"
+    },
+    {
+      "id": "rbi-vcip-amendment-2021",
+      "title": "Amendment to Master Direction on KYC - V-CIP Enhancement",
+      "regulator": "RBI",
+      "topic": "kyc_aml",
+      "doc_type": "circular",
+      "date": "2021-05-10",
+      "url": "https://www.ireda.in/images/HTMLfiles/Amendment%20to%20MD%20KYC%20-10-05-2021.PDF",
+      "source_note": "Mirror from IREDA",
+      "description": "Enhanced V-CIP guidelines with detailed infrastructure requirements and periodic KYC updation norms"
+    },
+    {
+      "id": "rbi-kyc-master-direction-html",
+      "title": "Master Direction on KYC - Full Text (HTML)",
+      "regulator": "RBI",
+      "topic": "kyc_aml",
+      "doc_type": "master_direction",
+      "date": "2025-08-14",
+      "url": "https://www.rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=11566",
+      "format": "html",
+      "description": "Latest consolidated version of KYC Master Direction - HTML format from RBI website"
+    },
+    {
+      "id": "rbi-ppi-master-direction-html",
+      "title": "Master Direction on Prepaid Payment Instruments (PPIs)",
+      "regulator": "RBI",
+      "topic": "payment_systems",
+      "doc_type": "master_direction",
+      "date": "2021-08-27",
+      "url": "https://www.rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=12156",
+      "format": "html",
+      "description": "Framework for issuance and operation of prepaid payment instruments - HTML from RBI"
+    },
+    {
+      "id": "rbi-payment-aggregator-html",
+      "title": "Guidelines on Regulation of Payment Aggregators and Payment Gateways",
+      "regulator": "RBI",
+      "topic": "payment_systems",
+      "doc_type": "guideline",
+      "date": "2020-03-17",
+      "url": "https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=11822",
+      "format": "html",
+      "description": "Regulations for payment aggregators and gateways including authorization requirements"
+    }
+  ],
+  "_metadata": {
+    "last_updated": "2026-03-23",
+    "notes": "URLs use RBI commonman portal and third-party mirrors to avoid rbidocs.rbi.org.in bot protection (HTTP 418). HTML pages are scraped and converted to text during parsing. For any URLs that fail, download manually in browser and place in data/raw/<regulator>/ folder.",
+    "manual_download_instructions": "If automated download fails: 1) Open the URL in your browser, 2) Save/download the PDF, 3) Rename to <document-id>.pdf, 4) Place in data/raw/rbi/ or data/raw/sebi/"
+  }
+}
