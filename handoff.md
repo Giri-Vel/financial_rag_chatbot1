@@ -1,54 +1,100 @@
-# RegulatorAI — Project Handoff Document
+# RegulatorAI — Session Handoff (March 29, 2026)
 
-## What This Is
-A RAG-based chatbot for navigating Indian financial regulatory documents (RBI/SEBI). Portfolio project combining AI/LLM skills with AWS deployment, targeting Giri's career roadmap (Operation North Star).
+## What Was Done This Session
 
-## What's Been Built (Complete)
+### FastAPI Backend (src/api/)
+Built a clean API layer between the Streamlit frontend and the RAG chain. Four files:
 
-### Data Ingestion Pipeline (`scripts/ingest.py`)
-All 4 steps working end-to-end:
+- main.py — FastAPI app with lifespan that initializes RAGChain once at startup. CORS configured for Streamlit on port 8501. All routes under /api/v1/.
+- routes.py — Four endpoints: POST /query (main RAG endpoint), GET /health (collection stats for monitoring/AWS health checks), GET /topics (topic list with chunk counts), GET /documents (full knowledge base inventory with per-document chunk counts).
+- models.py — Pydantic request/response schemas for all endpoints.
+- __init__.py — empty.
 
-1. **Scraper** (`src/ingestion/scraper.py`) — Downloads docs from curated registry. Uses mirror URLs to bypass RBI's bot protection (HTTP 418 on rbidocs.rbi.org.in). Sources: RBI commonman portal, DigiLocker, FIDC India, IREDA.
+All four endpoints tested and returning 200. The RAG chain initializes once and is shared across requests via a module-level reference set during startup.
 
-2. **Parser** (`src/ingestion/parser.py`) — Extracts text from PDFs (PyMuPDF) and HTML pages (BeautifulSoup). 8/10 docs parsed successfully. 2 JavaScript-rendered HTML pages failed (rbi-kyc-master-direction-html, rbi-ppi-master-direction-html) — not critical, content covered by PDF versions.
+### Streamlit Frontend (ui/app.py)
+Went through multiple iterations fighting Streamlit 1.55.0 rendering quirks. Final version:
 
-3. **Chunker** (`src/ingestion/chunker.py`) — Section-aware chunking with metadata. 600 chunks, ~229 avg tokens/chunk. Context prefix on each chunk for LLM awareness.
+- WhatsApp-style chat bubbles — user messages right-aligned (green-tinted), assistant messages left-aligned (darker background). No avatars at all.
+- All messages rendered as custom HTML divs, not st.chat_message() — this was necessary because Streamlit 1.55.0 has broken avatar rendering (garbled "rt" and "ac" text instead of icons).
+- Sources displayed using HTML details/summary tags instead of st.expander() — the expander was also rendering garbled icons in 1.55.0.
+- Two-phase message flow: user types -> message appears immediately + "Querying regulatory documents..." loading bubble -> API response replaces loading bubble. Uses st.session_state.pending_query flag and st.rerun() to manage the two-phase render.
+- Topic dropdown shows document counts ("Digital Lending (3 docs)") not chunk counts.
+- top_k hardcoded to 5 — conscious decision to simplify UI, can be exposed later.
+- layout="wide" with max-width: 900px CSS so it's responsive but bounded.
+- API base URL reads from API_BASE_URL env var (for Docker), falls back to localhost:8000 for local dev.
+- Green terminal aesthetic with Share Tech Mono + IBM Plex Mono fonts. Minimal CSS — only custom classes for headers/labels/bubbles, no aggressive Streamlit override hacks.
 
-4. **Embedder** (`src/ingestion/embedder.py`) — OpenAI `text-embedding-3-small`, stored in ChromaDB (persistent, local). All 600 chunks embedded.
+### Docker Setup
+Two-container architecture via docker-compose:
 
-### RAG Generation Layer
-- **Vector Store** (`src/retrieval/vector_store.py`) — ChromaDB wrapper with metadata filtering (topic, regulator, doc_type).
-- **RAG Chain** (`src/generation/chain.py`) — Retrieval + LLM generation with citations. Uses `gpt-4o-mini`. Interactive CLI built in.
+- Dockerfile.api — Python 3.11-slim, copies full src/ before pip install (important: copying just src/__init__.py first causes exit code 2 because setuptools needs the full package). Runs uvicorn on port 8000.
+- Dockerfile.ui — Python 3.11-slim, only installs streamlit + requests (not the full RAG stack). Runs streamlit on port 8501. Streamlit config baked in (headless, dark theme, no telemetry).
+- docker-compose.yml — API container has health check (curl /api/v1/health), UI container depends_on api with condition: service_healthy. ChromaDB data mounted as volume (./data/chromadb:/app/data/chromadb). .env passed via env_file (never baked into image). UI gets API_BASE_URL=http://api:8000/api/v1 for Docker internal DNS.
+- .dockerignore — excludes .git, .venv, data dirs, .env, markdown files.
+- Docker Desktop must be manually launched on Mac before docker compose up --build.
 
-### Configuration
-- `src/config.py` — pydantic-settings, all config from `.env`
-- `pyproject.toml` — modern Python packaging, editable install (`pip install -e ".[dev]"`)
-- `.env.example` — template for API keys
-- `data/document_registry.json` — 10 curated RBI documents across 3 topics
+### Git
+Pushed to GitHub: .gitignore updated with Docker and env file patterns, .env.example created with placeholder key, all new files committed and pushed to main.
 
-### Document Coverage
-- **Digital Lending**: 3 docs (2022 guidelines, 2025 directions, FAQ)
-- **KYC/AML**: 4 docs (master direction, FAQ, V-CIP 2020, V-CIP 2021)
-- **Payment Systems**: 1 doc (payment aggregator guidelines)
-- All RBI. SEBI docs not yet added.
 
-## Tech Stack
-- **Framework**: LangChain + OpenAI (`gpt-4o-mini` for LLM, `text-embedding-3-small` for embeddings)
-- **Vector DB**: ChromaDB (persistent, local)
-- **PDF Processing**: PyMuPDF
-- **HTML Processing**: BeautifulSoup + lxml
-- **Config**: pydantic-settings
-- **Python**: 3.11+
+## Caveats and Known Issues
 
-## Project Structure
+- Streamlit 1.55.0 has broken rendering for st.chat_message() avatars and st.expander() icons. We work around both with custom HTML. If Streamlit updates and fixes these, the workarounds can be simplified.
+- The sidebar was completely removed because it kept disappearing and couldn't be reliably toggled back. All controls are inline above the chat now.
+- Markdown-to-HTML conversion in the assistant bubbles is basic (bold, code, unordered lists only). Numbered lists, headers, tables from LLM responses may not render perfectly. Could improve the converter or use a library like markdown2.
+- The loading bubble ("Querying regulatory documents...") renders but doesn't animate. It's a static HTML div, not a Streamlit spinner. Works fine functionally.
+- SEBI documents still not ingested — only RBI covered.
+- 2 of the 10 RBI HTML documents failed parsing (JavaScript-rendered pages: rbi-kyc-master-direction-html, rbi-ppi-master-direction-html). Content is covered by their PDF versions so not critical.
+
+
+## What's Next (Priority Order)
+
+### 1. AWS EC2 Deployment
+- Region: ap-south-1 (Mumbai)
+- IAM user: giriiam1 (has AdministratorAccess)
+- Plan: EC2 instance (t2.micro or t3.small), run docker compose on it
+- Need to handle: security groups (open 8501 for UI, 8000 for API or keep internal), .env file on the instance, pulling code from GitHub, SSL/domain if we want it polished
+- S3 for raw document storage (optional, docs are small)
+
+### 2. README and Portfolio Polish
+- Architecture diagram showing the full pipeline: docs -> scraper -> parser -> chunker -> embedder -> ChromaDB -> FastAPI -> Streamlit
+- Screenshots of the working UI with a real query
+- Demo GIF
+- Clear setup instructions (clone, .env, docker compose up)
+- Tech stack badges
+
+### 3. Evaluation Pipeline
+- 20-30 manual Q&A pairs in data/eval/
+- Metrics: retrieval accuracy (are the right chunks coming back?), answer quality (is the LLM using the context correctly?), citation accuracy
+- Could use LLM-as-judge for automated eval
+
+### 4. More Documents
+- SEBI documents (not started)
+- More RBI topics beyond digital_lending, kyc_aml, payment_systems
+
+### 5. UI Polish (Lower Priority)
+- Better markdown rendering in assistant bubbles
+- Auto-scroll to bottom on new messages (JavaScript snippet)
+- Mobile responsiveness
+- Possibly bring back a sidebar or settings panel once Streamlit fixes their rendering bugs
+
+
+## Project Structure (Current)
 ```
 financial_rag_chatbot1/
 ├── data/
-│   └── document_registry.json    # URLs + metadata for all docs
+│   └── document_registry.json
 ├── scripts/
-│   └── ingest.py                 # Pipeline runner (scrape/parse/chunk/embed)
+│   └── ingest.py
 ├── src/
-│   ├── config.py                 # Central config + prompt templates
+│   ├── __init__.py
+│   ├── config.py
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── main.py
+│   │   ├── routes.py
+│   │   └── models.py
 │   ├── ingestion/
 │   │   ├── scraper.py
 │   │   ├── parser.py
@@ -57,43 +103,28 @@ financial_rag_chatbot1/
 │   ├── retrieval/
 │   │   └── vector_store.py
 │   └── generation/
-│       └── chain.py              # RAG chain + interactive CLI
-├── pyproject.toml
-├── .env                          # (not in git) OpenAI key
+│       └── chain.py
+├── ui/
+│   └── app.py
+├── Dockerfile.api
+├── Dockerfile.ui
+├── docker-compose.yml
+├── .dockerignore
+├── .env              (not in git)
 ├── .env.example
-└── .gitignore
+├── pyproject.toml
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
 
-## What's Next (In Priority Order)
-
-### 1. Streamlit Frontend (`ui/app.py`)
-- Chat interface with message history
-- Topic filter sidebar (digital_lending, kyc_aml, payment_systems)
-- Source citations displayed below answers
-- Clean, professional look for portfolio demo
-
-### 2. FastAPI Backend (`src/api/`)
-- `main.py` — FastAPI app
-- `routes.py` — POST /query endpoint
-- `models.py` — Pydantic request/response schemas
-- Separates frontend from RAG logic (shows architectural thinking)
-
-### 3. Docker + AWS Deployment
-- Dockerfile + docker-compose.yml
-- Deploy on EC2 (t2.micro/t3.small, ap-south-1)
-- S3 for raw document storage
-- IAM roles (user: giriiam1, has AdministratorAccess)
-
-### 4. Polish for Portfolio
-- README with architecture diagram, screenshots, demo GIF
-- Evaluation pipeline (20-30 manual Q&A pairs in data/eval/)
-- Add more documents (SEBI, more RBI topics)
-- Blog post: "Building a RAG Chatbot for Indian Financial Regulations"
-
-## Key Decisions & Context
-- OpenAI costs are negligible at this scale (~₹200-300/month total)
-- Giri prefers natural conversational questions over structured prompt widgets
-- Bot protection on rbidocs.rbi.org.in requires mirror URLs
-- 2 HTML docs failed parsing (JS-rendered) — content already covered by PDFs
-- AWS region: ap-south-1 (Mumbai) for low latency from Chennai
-- Wedding: April 23, 2026. Phase 1 starts May 5, 2026.
+## Key Technical Decisions Log
+- OpenAI gpt-4o-mini for generation, text-embedding-3-small for embeddings — cost negligible at this scale
+- ChromaDB over Pinecone — local, free, no external dependency
+- LangChain over LlamaIndex — more flexible for the RAG chain
+- top_k=5 hardcoded in UI — removed from user controls to simplify, can revisit
+- Two Docker containers over one — cleaner architecture, better for portfolio
+- Custom HTML chat bubbles over st.chat_message() — forced by Streamlit 1.55.0 rendering bugs
+- HTML details/summary over st.expander() — same reason
+- No sidebar — kept disappearing, moved controls inline
+- API_RELOAD=false in Docker, true for local dev
