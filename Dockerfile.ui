@@ -1,0 +1,51 @@
+# ── RegulatorAI UI — Dockerfile ────────────────────────
+# Serves the Streamlit frontend.
+# Talks to the API container over the Docker network.
+#
+# Build:  docker build -f Dockerfile.ui -t regulator-ai-ui .
+# Run:    docker run -p 8501:8501 regulator-ai-ui
+
+FROM python:3.11-slim AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# ── System dependencies ───────────────────────────────
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Python dependencies ───────────────────────────────
+# Only install what the UI actually needs (not the full RAG stack)
+RUN pip install --no-cache-dir \
+    streamlit>=1.45.1 \
+    requests>=2.32.3
+
+# ── Application code ──────────────────────────────────
+COPY ui/ ui/
+
+# ── Streamlit config ──────────────────────────────────
+# Disable telemetry, set server defaults
+RUN mkdir -p /root/.streamlit
+RUN echo '\
+[server]\n\
+port = 8501\n\
+address = "0.0.0.0"\n\
+headless = true\n\
+enableCORS = false\n\
+enableXsrfProtection = false\n\
+\n\
+[browser]\n\
+gatherUsageStats = false\n\
+\n\
+[theme]\n\
+base = "dark"\n\
+' > /root/.streamlit/config.toml
+
+# ── Expose & Run ──────────────────────────────────────
+EXPOSE 8501
+
+CMD ["streamlit", "run", "ui/app.py"]

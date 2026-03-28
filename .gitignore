@@ -212,3 +212,11 @@ data/raw/
 data/processed/
 data/chromadb/
 logs/
+
+
+# ── Docker ────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── Environment files (catch all variations) ──────────
+.env.*
+!.env.example

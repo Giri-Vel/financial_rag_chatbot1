@@ -1,0 +1,33 @@
+# ── RegulatorAI — .dockerignore ────────────────────────
+
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.venv
+venv
+.env
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Data (mounted as volumes, not baked in)
+data/raw/
+data/processed/
+data/chromadb/
+data/eval/
+logs/
+
+# Docs
+*.md
+LICENSE
+handoff.md
+operation-north-star.docx

@@ -1,0 +1,61 @@
+# ── RegulatorAI — Docker Compose ───────────────────────
+# Two containers:
+#   1. api  — FastAPI backend (RAG chain + ChromaDB)
+#   2. ui   — Streamlit frontend (talks to api over Docker network)
+#
+# Usage:
+#   docker compose up --build          # Build & run both
+#   docker compose up --build -d       # Detached mode
+#   docker compose down                # Stop everything
+#   docker compose logs -f api         # Follow API logs
+#
+# Prerequisites:
+#   - .env file with OPENAI_API_KEY
+#   - data/chromadb/ populated (run ingestion pipeline first)
+
+services:
+  # ── FastAPI Backend ──────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: regulator-ai-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Override config for container paths
+      - CHROMA_PERSIST_DIR=/app/data/chromadb
+      - API_RELOAD=false
+    volumes:
+      # Mount ChromaDB data (persists embeddings across restarts)
+      - ./data/chromadb:/app/data/chromadb
+      # Mount raw + processed data (for potential re-ingestion)
+      - ./data/raw:/app/data/raw
+      - ./data/processed:/app/data/processed
+      # Mount logs out to host for debugging
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  # ── Streamlit Frontend ──────────────────────────────
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    container_name: regulator-ai-ui
+    ports:
+      - "8501:8501"
+    environment:
+      # Point the UI to the API container (Docker internal DNS)
+      - API_BASE_URL=http://api:8000/api/v1
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
